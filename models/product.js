@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 
+const Cart = require('../models/cart')
+
 // pathToData = /data/products.json
 const pathToData = path.join(
   path.dirname(require.main.filename),
@@ -20,7 +22,8 @@ const getProductsFromFileAndParse = (callback) => {
 };
 
 module.exports = class Product {
-  constructor(title, imageUrl, description, price) {
+  constructor(id, title, imageUrl, description, price) {
+    this.id = id;
     this.title = title;
     this.imageUrl = imageUrl;
     this.description = description;
@@ -28,16 +31,50 @@ module.exports = class Product {
   }
 
   save() {    
-    // when we call function getProductsFromFileAndParse, we have parsed the data. Therefore, the callback in this function will be pushing data, stringifying it and writing it to file.
+    // when we call function getProductsFromFileAndParse, we  parsed the data. Therefore, the callback in this function will be pushing data, stringifying it and writing it to file.
     getProductsFromFileAndParse((products) => {
-      products.push(this);
-      fs.writeFile(pathToData, JSON.stringify(products), (err) => {
-        console.log(err);
-      });
+      if (this.id){
+        // editing
+        const existingProductIndex = products.findIndex(prod => prod.id == this.id)
+        const updatedProducts = [...products];
+        updatedProducts[existingProductIndex] = this;
+        fs.writeFile(pathToData, JSON.stringify(updatedProducts), (err) => {
+          console.log(err);
+        });
+      }
+      else {
+        // create new product
+        this.id = Math.random().toString();
+        products.push(this);
+        
+        fs.writeFile(pathToData, JSON.stringify(products), (err) => {
+          console.log(err);
+        });
+      }
     });
+  }
+
+
+  static deleteById(id) {
+    getProductsFromFileAndParse((products) => {
+      const product = products.find(p => p.id === id)
+      const updatedProducts = products.filter(prod => prod.id !== id);
+      fs.writeFile(pathToData, JSON.stringify(updatedProducts), (err) => {
+        if (!err) {
+          Cart.deleteProduct(id, product.price)
+        }
+      })
+    })
   }
 
   static fetchAll(callback) {
     getProductsFromFileAndParse(callback);
+  }
+
+  static findById(id, callback) {
+    getProductsFromFileAndParse(products => {
+      const product = products.find(prod => prod.id === id);
+      callback(product);
+    })
   }
 };
