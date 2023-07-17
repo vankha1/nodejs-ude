@@ -16,35 +16,39 @@ app.set('views', 'views') // where to find
 
 */
 
-app.set('view engine', 'ejs');
-app.set('views', 'views'); 
+app.set("view engine", "ejs");
+app.set("views", "views");
 
-// Controllers 
-const errorController = require('./controllers/error')
+// Database
+const db = require("./util/database");
+
+// Controllers
+const errorController = require("./controllers/error");
 
 // Path
 const path = require("path");
 
 // Body parser
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({
-    extended: true
-}))
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
 
 // public folder
-app.use(express.static(path.join(__dirname, "public")))
+app.use(express.static(path.join(__dirname, "public")));
 
 // Router
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
-app.use('/admin', adminRoutes);
+app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 
-
 // Not found page
-app.use(errorController.get404)
+app.use(errorController.get404);
 
-app.listen(4000)
+app.listen(4000);
 /* Vanilla NodeJS
 
 const routes = require("./routes");
