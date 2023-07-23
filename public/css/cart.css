@@ -1,0 +1,33 @@
+.cart__item__list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cart__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* gap: 50px; */
+    background-color: white;
+    border: 1px solid #716d6d;
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+    width: 50%;
+    margin: 0 auto;
+}
+
+.cart__item__title {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.cart__item__quantity {
+    flex: 1;
+}
+
+.delete {
+    border-color: red;
+    color: red;
+    font-weight: bold;
+    margin-right: 20px;
+}
