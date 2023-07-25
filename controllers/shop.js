@@ -21,7 +21,7 @@ exports.getProducts = (req, res, next) => {
     })
     .catch((err) => console.error(err)); */
 
-  Product.findAll()
+  Product.fetchAll()
     .then((products) => {
       res.render("shop/product-list", {
         prods: products,
@@ -57,7 +57,8 @@ exports.getProduct = (req, res, next) => {
     })
     .catch((err) => console.error(err)); */
 
-  Product.findByPk(prodId)
+  /* Sequelize
+    Product.findByPk(prodId)
     .then((product) => {
       res.render("shop/product-detail", {
         product: product,
@@ -65,7 +66,7 @@ exports.getProduct = (req, res, next) => {
         path: "/products",
       });
     })
-    .catch((err) => console.error(err));
+    .catch((err) => console.error(err)); */
 
   /* findAll + where = findByPk, but findAll return an array.
     Product.findAll({where : {id : prodId}})
@@ -78,6 +79,16 @@ exports.getProduct = (req, res, next) => {
     })
     .catch((err) => console.error(err)); 
     */
+
+  Product.findById(prodId)
+    .then((product) => {
+      res.render("shop/product-detail", {
+        product,
+        pageTitle: product.title,
+        path: "/products",
+      });
+    })
+    .catch((err) => console.error(err));
 };
 
 exports.getIndex = (req, res, next) => {
@@ -100,7 +111,7 @@ exports.getIndex = (req, res, next) => {
     })
     .catch((err) => console.error(err)); */
 
-  Product.findAll()
+  Product.fetchAll()
     .then((products) => {
       res.render("shop/index", {
         prods: products,
@@ -134,7 +145,7 @@ exports.getCart = (req, res, next) => {
       });
     });
   }); */
-
+  /* Sequelize
   req.user
     .getCart()
     .then((cart) => {
@@ -149,6 +160,17 @@ exports.getCart = (req, res, next) => {
         })
         .catch((err) => console.log(err));
     })
+    .catch((err) => console.log(err)); */
+
+  req.user
+    .getCart()
+    .then((products) => {
+      res.render("shop/cart", {
+        path: "/cart",
+        pageTitle: "Your Cart",
+        products: products,
+      });
+    })
     .catch((err) => console.log(err));
 };
 
@@ -158,6 +180,8 @@ exports.postCart = (req, res, next) => {
     Cart.addProduct(prodId, product.price);
     res.redirect("/cart");
   }); */
+
+  /* Sequelize
   let fetchedCart;
   let newQuantity = 1;
 
@@ -188,7 +212,17 @@ exports.postCart = (req, res, next) => {
         res.redirect("/cart");
       })
       .catch((err) => console.log(err));
-  });
+  }); */
+
+  Product.findById(prodId)
+    .then((product) => {
+      return req.user.addToCart(product);
+    })
+    .then((result) => {
+      // console.log(result);
+      res.redirect("/cart");
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.postCartDeleteProduct = (req, res, next) => {
@@ -197,6 +231,8 @@ exports.postCartDeleteProduct = (req, res, next) => {
     Cart.deleteProduct(prodId, product.price);
     res.redirect("/cart");
   }); */
+
+  /* Sequelize
   req.user
     .getCart()
     .then((cart) => {
@@ -209,12 +245,19 @@ exports.postCartDeleteProduct = (req, res, next) => {
     .then((result) => {
       res.redirect("/cart");
     })
+    .catch((err) => console.log(err)); */
+
+  req.user
+    .deleteItemFromCart(prodId)
+    .then((result) => {
+      res.redirect("/cart");
+    })
     .catch((err) => console.log(err));
 };
 
 exports.postOrder = (req, res, next) => {
+  /* Sequelize   
   let fetchedCart;
-
   req.user
     .getCart()
     .then((cart) => {
@@ -241,14 +284,33 @@ exports.postOrder = (req, res, next) => {
     .then((result) => {
       res.redirect("/orders");
     })
+    .catch((err) => console.log(err)); */
+
+  req.user
+    .addOrder()
+    .then((result) => {
+      res.redirect("/orders");
+    })
     .catch((err) => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
+  /* Sequelize 
   req.user
-    .getOrders({ include: ['products'] })
+    .getOrders({ include: ["products"] })
     .then((orders) => {
       // console.log(orders); // include property named products
+      res.render("shop/orders", {
+        path: "/orders",
+        pageTitle: "Your orders",
+        orders: orders,
+      });
+    })
+    .catch((err) => console.log(err)); */
+
+  req.user
+    .getOrders()
+    .then((orders) => {
       res.render("shop/orders", {
         path: "/orders",
         pageTitle: "Your orders",

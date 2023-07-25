@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const mongodb = require("mongodb");
 
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/edit-product", {
@@ -20,9 +21,10 @@ exports.getProducts = (req, res, next) => {
     });
   }); */
 
-  req.user
+  /*  Sequelize
+ req.user
     .getProducts()
-  // Product.findAll()
+    // Product.findAll()
     .then((products) => {
       res.render("admin/products", {
         prods: products,
@@ -32,6 +34,18 @@ exports.getProducts = (req, res, next) => {
     })
     .catch((error) => {
       console.log(error);
+    }); */
+
+  Product.fetchAll()
+    .then((products) => {
+      res.render("admin/products", {
+        prods: products,
+        pageTitle: "Admin Products",
+        path: "/admin/products",
+      });
+    })
+    .catch((err) => {
+      console.log(err);
     });
 };
 
@@ -41,6 +55,27 @@ exports.postAddProduct = (req, res, next) => {
   const description = req.body.description;
   const price = req.body.price;
 
+  const product = new Product(
+    title,
+    imageUrl,
+    description,
+    price,
+    null,
+    req.user._id
+  );
+  // console.log("day la product",product);
+  product
+    .save()
+    .then((result) => {
+      console.log("Created product");
+      console.log(result);
+      res.redirect("/admin/products");
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
+  /* Sequelize
   req.user.createProduct({
     title: title,
     imageUrl: imageUrl,
@@ -54,7 +89,7 @@ exports.postAddProduct = (req, res, next) => {
     .catch((error) => {
       console.log(error);
     });
-
+ */
   /* const product = new Product(null, title, imageUrl, description, price);
   product
     .save()
@@ -72,10 +107,10 @@ exports.getEditProduct = (req, res, next) => {
   }
 
   const prodId = req.params.productId;
-
+  /* Sequelize
   req.user
-    .getProducts({where : { id : prodId }})
-  // Product.findByPk(prodId)
+    .getProducts({ where: { id: prodId } })
+    // Product.findByPk(prodId)
     .then((products) => {
       if (!products[0]) return res.redirect("/");
       res.render("admin/edit-product", {
@@ -83,6 +118,18 @@ exports.getEditProduct = (req, res, next) => {
         path: "/admin/edit-product",
         editing: editMode,
         product: products[0],
+      });
+    })
+    .catch((err) => console.log(err)); */
+
+  Product.findById(prodId)
+    .then((product) => {
+      if (!product) return res.redirect("/");
+      res.render("admin/edit-product", {
+        pageTitle: "Edit Product",
+        path: "/admin/edit-product",
+        editing: editMode,
+        product: product,
       });
     })
     .catch((err) => console.log(err));
@@ -105,6 +152,7 @@ exports.postEditProduct = (req, res, next) => {
   updatedProduct.save();
   res.redirect("/admin/products"); */
 
+  /* Sequelize
   // Notes that it only changes locally in our app, not in database
   Product.findByPk(prodId)
     .then((product) => {
@@ -119,15 +167,41 @@ exports.postEditProduct = (req, res, next) => {
     })
     .catch((error) => {
       console.log(error);
+    }); */
+  const product = new Product(
+    updatedTitle,
+    updatedImageUrl,
+    updatedDesc,
+    updatedPrice,
+    prodId
+  );
+
+  product
+    .save()
+    .then((result) => {
+      console.log("Updated product");
+      res.redirect("/admin/products");
+    })
+    .catch((error) => {
+      console.log(error);
     });
 };
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
+  /* Sequelize
   Product.findByPk(prodId)
     .then((product) => {
       return product.destroy();
     })
+    .then((result) => {
+      res.redirect("/admin/products");
+    })
+    .catch((error) => {
+      console.log(error);
+    }); */
+
+  Product.deleteById(prodId)
     .then((result) => {
       res.redirect("/admin/products");
     })

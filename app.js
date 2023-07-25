@@ -18,8 +18,7 @@ app.set('views', 'views') // where to find
 
 app.set("view engine", "ejs");
 app.set("views", "views");
-
-// Database
+/* // Database SQL
 const sequelize = require("./util/database");
 const Product = require("./models/product")
 const User = require("./models/user")
@@ -27,12 +26,26 @@ const Cart = require("./models/cart")
 const CartItem = require("./models/cart-item")
 const Order = require("./models/order")
 const OrderItem = require("./models/order-item")
+ */
+
+// MongoDB connection
+const mongoConnect = require('./util/database').mongoConnect
+const User = require("./models/user");
+
 
 
 app.use((req, res, next) => {
+  /* Sequelize
   User.findByPk(1)
     .then((user) =>{
       req.user = user
+      next()
+    })
+    .catch((err) => console.log(err)) */
+
+  User.findById('64bcb201f03f17cf7edcd170')
+    .then((user) => {
+      req.user = new User(user.name, user.email, user.cart, user._id) 
       next()
     })
     .catch((err) => console.log(err))
@@ -64,6 +77,12 @@ app.use(shopRoutes);
 // Not found page
 app.use(errorController.get404);
 
+mongoConnect(() => {
+  app.listen(4000)
+})
+
+
+/* SQL Connection
 // onDelete : 'CASCADE' -> if we delete a user, any price related to the user will be removed
 Product.belongsTo(User, { constraints : true, onDelete : 'CASCADE' })
 User.hasMany(Product)
@@ -101,8 +120,10 @@ sequelize
   .catch((error) => {
     console.log(error);
   });
+ */
 
-/* Vanilla NodeJS
+
+  /* Vanilla NodeJS
 
 const routes = require("./routes");
 
