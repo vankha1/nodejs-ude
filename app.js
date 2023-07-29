@@ -19,6 +19,7 @@ app.set('views', 'views') // where to find
 app.set("view engine", "ejs");
 app.set("views", "views");
 /* // Database SQL
+
 const sequelize = require("./util/database");
 const Product = require("./models/product")
 const User = require("./models/user")
@@ -26,30 +27,35 @@ const Cart = require("./models/cart")
 const CartItem = require("./models/cart-item")
 const Order = require("./models/order")
 const OrderItem = require("./models/order-item")
+
  */
 
-// MongoDB connection
-const mongoConnect = require('./util/database').mongoConnect
+/* MongoDB connection
+const mongoConnect = require("./util/database").mongoConnect;
+const User = require("./models/user"); */
+
+// Mongoose connection
+const mongoose = require("mongoose");
 const User = require("./models/user");
 
-
-
 app.use((req, res, next) => {
-  /* Sequelize
+  /* // Sequelize
   User.findByPk(1)
     .then((user) =>{
       req.user = user
       next()
     })
-    .catch((err) => console.log(err)) */
-
-  User.findById('64bcb201f03f17cf7edcd170')
-    .then((user) => {
-      req.user = new User(user.name, user.email, user.cart, user._id) 
-      next()
-    })
     .catch((err) => console.log(err))
-})
+   */
+  
+  // MongoDB and mongoose
+  User.findById("64c1dd1dc50fc4332351c848")
+    .then((user) => {
+      req.user = user
+      next();
+    })
+    .catch((err) => console.log(err));
+});
 
 // Controllers
 const errorController = require("./controllers/error");
@@ -77,10 +83,32 @@ app.use(shopRoutes);
 // Not found page
 app.use(errorController.get404);
 
+mongoose
+  .connect(
+    "mongodb+srv://vovankha2003:vovankha2003@cluster0.e5aa9am.mongodb.net/shop?retryWrites=true&w=majority"
+  )
+  .then((result) => {
+    User.findOne().then((user) => {
+      if(!user){
+        const user = new User({
+          name: "van kha",
+          email: "vankha2003@gmail.com",
+          cart : {
+            items: []
+          }
+        })
+        user.save()
+      }
+    })
+    app.listen(4000);
+  })
+  .catch((err) => console.log(err));
+
+/* 
+
 mongoConnect(() => {
   app.listen(4000)
-})
-
+}) */
 
 /* SQL Connection
 // onDelete : 'CASCADE' -> if we delete a user, any price related to the user will be removed
@@ -122,8 +150,7 @@ sequelize
   });
  */
 
-
-  /* Vanilla NodeJS
+/* Vanilla NodeJS
 
 const routes = require("./routes");
 

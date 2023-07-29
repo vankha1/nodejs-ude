@@ -1,7 +1,18 @@
 const Product = require("../models/product");
-const Cart = require("../models/cart");
+const Order = require("../models/order");
+// const Cart = require("../models/cart");
 
 exports.getProducts = (req, res, next) => {
+  Product.find()
+    .then((products) => {
+      res.render("shop/product-list", {
+        prods: products,
+        pageTitle: "Shop",
+        path: "/products",
+      });
+    })
+    .catch((err) => console.error(err));
+
   /* Product.fetchAll((products) => {
     res.render("shop/product-list", {
       prods: products,
@@ -21,6 +32,7 @@ exports.getProducts = (req, res, next) => {
     })
     .catch((err) => console.error(err)); */
 
+  /* MongoDB
   Product.fetchAll()
     .then((products) => {
       res.render("shop/product-list", {
@@ -29,7 +41,7 @@ exports.getProducts = (req, res, next) => {
         path: "/products",
       });
     })
-    .catch((err) => console.error(err));
+    .catch((err) => console.error(err)); */
 
   /* console.log(path.join(__dirname)); /NodeJS/routes
   res.sendFile(path.join(rootDir, 'views', 'shop.html')); // we can also use path.resolve('views', 'shop.html') */
@@ -92,6 +104,16 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+  Product.find()
+    .then((products) => {
+      res.render("shop/index", {
+        prods: products,
+        pageTitle: "Shop",
+        path: "/",
+      });
+    })
+    .catch((err) => console.error(err));
+
   /* Product.fetchAll((products) => {
     res.render("shop/index", {
       prods: products,
@@ -111,6 +133,7 @@ exports.getIndex = (req, res, next) => {
     })
     .catch((err) => console.error(err)); */
 
+  /* MongoDB
   Product.fetchAll()
     .then((products) => {
       res.render("shop/index", {
@@ -119,7 +142,7 @@ exports.getIndex = (req, res, next) => {
         path: "/",
       });
     })
-    .catch((err) => console.error(err));
+    .catch((err) => console.error(err)); */
 };
 
 exports.getCart = (req, res, next) => {
@@ -163,8 +186,11 @@ exports.getCart = (req, res, next) => {
     .catch((err) => console.log(err)); */
 
   req.user
-    .getCart()
-    .then((products) => {
+    .populate("cart.items.productId")
+    .then((user) => {
+      // console.log(user);
+      const products = user.cart.items;
+      // console.log(products);
       res.render("shop/cart", {
         path: "/cart",
         pageTitle: "Your Cart",
@@ -287,14 +313,43 @@ exports.postOrder = (req, res, next) => {
     .catch((err) => console.log(err)); */
 
   req.user
-    .addOrder()
+    .populate("cart.items.productId")
+    .then((user) => {
+      // 'cause user items have product's id which doesn't exist in model Order, we need to map user.cart.items to get quantity and product.
+      const products = user.cart.items.map((item) => {
+        return { quantity: item.quantity, product: { ...item.productId._doc } };
+      });
+      // console.log(user.cart.items);
+      const order = new Order({
+        products: products,
+        user: {
+          name: req.user.name,
+          userId: req.user._id,
+        },
+      });
+      return order.save();
+    })
     .then((result) => {
+      req.user.clearCart();
+    })
+    .then(() => {
       res.redirect("/orders");
     })
     .catch((err) => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
+  Order
+    .find({ "user.userId": req.user._id })
+    .then((orders) => {
+      res.render("shop/orders", {
+        path: "/orders",
+        pageTitle: "Your orders",
+        orders: orders,
+      });
+    })
+    .catch((err) => console.log(err));
+
   /* Sequelize 
   req.user
     .getOrders({ include: ["products"] })
@@ -308,6 +363,7 @@ exports.getOrders = (req, res, next) => {
     })
     .catch((err) => console.log(err)); */
 
+  /* MongoDB
   req.user
     .getOrders()
     .then((orders) => {
@@ -317,7 +373,7 @@ exports.getOrders = (req, res, next) => {
         orders: orders,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.log(err)); */
 };
 
 exports.getCheckout = (req, res, next) => {

@@ -36,8 +36,11 @@ exports.getProducts = (req, res, next) => {
       console.log(error);
     }); */
 
-  Product.fetchAll()
+  Product.find()
+    // .select('title -price')
+    // .populate('userId', 'name')
     .then((products) => {
+      console.log(products);
       res.render("admin/products", {
         prods: products,
         pageTitle: "Admin Products",
@@ -55,6 +58,15 @@ exports.postAddProduct = (req, res, next) => {
   const description = req.body.description;
   const price = req.body.price;
 
+  const product = new Product({
+    title: title,
+    imageUrl: imageUrl,
+    description: description,
+    price: price,
+    userId: req.user._id // or just req.user 'cause mongoose automatically assigns _id to userId
+  });
+
+  /* MongoDB implementation
   const product = new Product(
     title,
     imageUrl,
@@ -62,13 +74,13 @@ exports.postAddProduct = (req, res, next) => {
     price,
     null,
     req.user._id
-  );
-  // console.log("day la product",product);
+  ); */
+
   product
     .save()
     .then((result) => {
       console.log("Created product");
-      console.log(result);
+      // console.log(result);
       res.redirect("/admin/products");
     })
     .catch((error) => {
@@ -141,6 +153,23 @@ exports.postEditProduct = (req, res, next) => {
   const updatedImageUrl = req.body.imageUrl;
   const updatedPrice = req.body.price;
   const updatedDesc = req.body.description;
+
+  Product.findById(prodId)
+    .then((product) => {
+      product.title = updatedTitle;
+      product.imageUrl = updatedImageUrl;
+      product.price = updatedPrice;
+      product.description = updatedDesc;
+      return product.save();
+    })
+    .then((result) => {
+      console.log("Updated product");
+      res.redirect("/admin/products");
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
   /* 
   const updatedProduct = new Product(
     prodId,
@@ -168,23 +197,14 @@ exports.postEditProduct = (req, res, next) => {
     .catch((error) => {
       console.log(error);
     }); */
+  /* MongoDB 
   const product = new Product(
     updatedTitle,
     updatedImageUrl,
     updatedDesc,
     updatedPrice,
     prodId
-  );
-
-  product
-    .save()
-    .then((result) => {
-      console.log("Updated product");
-      res.redirect("/admin/products");
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+  ); */
 };
 
 exports.postDeleteProduct = (req, res, next) => {
@@ -201,7 +221,7 @@ exports.postDeleteProduct = (req, res, next) => {
       console.log(error);
     }); */
 
-  Product.deleteById(prodId)
+  Product.findByIdAndRemove(prodId)
     .then((result) => {
       res.redirect("/admin/products");
     })
