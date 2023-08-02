@@ -9,6 +9,7 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: "Shop",
         path: "/products",
+        isAuthenticated : req.session.isLoggedIn
       });
     })
     .catch((err) => console.error(err));
@@ -98,6 +99,7 @@ exports.getProduct = (req, res, next) => {
         product,
         pageTitle: product.title,
         path: "/products",
+        isAuthenticated : req.session.isLoggedIn
       });
     })
     .catch((err) => console.error(err));
@@ -110,6 +112,7 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         pageTitle: "Shop",
         path: "/",
+        isAuthenticated : req.session.isLoggedIn
       });
     })
     .catch((err) => console.error(err));
@@ -195,6 +198,7 @@ exports.getCart = (req, res, next) => {
         path: "/cart",
         pageTitle: "Your Cart",
         products: products,
+        isAuthenticated : req.session.isLoggedIn
       });
     })
     .catch((err) => console.log(err));
@@ -312,7 +316,7 @@ exports.postOrder = (req, res, next) => {
     })
     .catch((err) => console.log(err)); */
 
-  req.user
+    req.user
     .populate("cart.items.productId")
     .then((user) => {
       // 'cause user items have product's id which doesn't exist in model Order, we need to map user.cart.items to get quantity and product.
@@ -346,6 +350,7 @@ exports.getOrders = (req, res, next) => {
         path: "/orders",
         pageTitle: "Your orders",
         orders: orders,
+        isAuthenticated : req.session.isLoggedIn
       });
     })
     .catch((err) => console.log(err));
