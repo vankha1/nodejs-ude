@@ -1,1 +1,1 @@
-# Learning NodeJS for myself
+# Learning NodeJS by myself

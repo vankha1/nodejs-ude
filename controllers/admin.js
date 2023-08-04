@@ -6,12 +6,11 @@ exports.getAddProduct = (req, res, next) => {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
-    isAuthenticated : req.session.isLoggedIn
   });
 
   // res.sendFile(path.join(rootDir, 'views', 'add-product.html'));
   // res.sendFile(path.join(__dirname, '..', 'views', 'add-product.html'));
-};
+}; // 
 
 exports.getProducts = (req, res, next) => {
   /* Product.fetchAll((products) => {
@@ -46,7 +45,6 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: "Admin Products",
         path: "/admin/products",
-        isAuthenticated : req.session.isLoggedIn
       });
     })
     .catch((err) => {
@@ -144,7 +142,6 @@ exports.getEditProduct = (req, res, next) => {
         path: "/admin/edit-product",
         editing: editMode,
         product: product,
-        isAuthenticated : req.session.isLoggedIn
       });
     })
     .catch((err) => console.log(err));

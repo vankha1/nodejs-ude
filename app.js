@@ -18,6 +18,15 @@ app.set('views', 'views') // where to find
 
 app.set("view engine", "ejs");
 app.set("views", "views");
+
+// CSRF token
+const csrf = require('csurf')
+const csrfProtection = csrf()
+
+
+// Connect-flash
+const flash = require('connect-flash')
+
 /* // Database SQL
 
 const sequelize = require("./util/database");
@@ -81,12 +90,22 @@ const path = require("path");
 const bodyParser = require("body-parser");
 app.use(
   bodyParser.urlencoded({
-    extended: true,
+    extended: false,
   })
 );
 
 // public folder
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use(csrfProtection)
+
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
+app.use(flash());
 
 // Router
 const adminRoutes = require("./routes/admin");
@@ -99,12 +118,13 @@ app.use(authRoutes);
 // Not found page
 app.use(errorController.get404);
 
+
 mongoose
   .connect(
     MONGODB_URI
   )
   .then((result) => {
-    User.findOne().then((user) => {
+    /*  User.findOne().then((user) => {
       if(!user){
         const user = new User({
           name: "van kha",
@@ -115,7 +135,8 @@ mongoose
         })
         user.save()
       }
-    })
+    }) */
+    
     app.listen(4000);
   })
   .catch((err) => console.log(err));

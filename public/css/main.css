@@ -207,6 +207,20 @@ main {
   color: white;
 }
 
+.user-message {
+  margin: auto;
+  width: 25%;
+  padding: 10px;
+  /* border: 1px solid #4771fa; */
+  background: rgb(142, 168, 253);
+  text-align: center;
+}
+
+.user-message--error {
+  border: 1px solid red;
+  background-color: rgb(233, 160, 160);
+  color: red;
+}
 @media (min-width: 768px) {
   .main-header__nav {
     display: flex;
