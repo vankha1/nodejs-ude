@@ -66,8 +66,8 @@ exports.postAddProduct = (req, res, next) => {
   if (!errors.isEmpty()){
     console.log(errors.array())
     return res.status(422).render("admin/edit-product", {
-      pageTitle: "Edit Product",
-      path: "/admin/edit-product",
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
       editing: false,
       product: {
         title: title,
@@ -107,7 +107,10 @@ exports.postAddProduct = (req, res, next) => {
       res.redirect("/admin/products");
     })
     .catch((error) => {
-      console.log(error);
+      // res.redirect('/500')
+      const errors = new Error(error)
+      errors.httpStatusCode = 500
+      return next(errors)
     });
 
   /* Sequelize
@@ -170,7 +173,11 @@ exports.getEditProduct = (req, res, next) => {
         validationErrors : []
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const errors = new Error(err)
+      errors.httpStatusCode = 500
+      return next(errors)
+    });
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -216,7 +223,9 @@ exports.postEditProduct = (req, res, next) => {
       });
     })
     .catch((error) => {
-      console.log(error);
+      const errors = new Error(error)
+      errors.httpStatusCode = 500
+      return next(errors)
     });
 
   /* 
@@ -275,6 +284,8 @@ exports.postDeleteProduct = (req, res, next) => {
       res.redirect("/admin/products");
     })
     .catch((error) => {
-      console.log(error);
+      const errors = new Error(error)
+      errors.httpStatusCode = 500
+      return next(errors)
     });
 };

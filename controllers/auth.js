@@ -98,7 +98,11 @@ exports.postLogin = (req, res, next) => {
           console.log(err);
         });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const errors = new Error(err)
+      errors.httpStatusCode = 500
+      return next(errors)
+    });
 };
 
 exports.postLogout = (req, res, next) => {
@@ -214,7 +218,11 @@ exports.postReset = (req, res, next) => {
           `,
         });
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        const errors = new Error(err)
+        errors.httpStatusCode = 500
+        return next(errors)
+      });
   });
 };
 
@@ -237,7 +245,11 @@ exports.getNewPassword = (req, res, next) => {
       userId: user._id.toString(),
       passwordToken: token
     });
-  }).catch(err => console.log(err))
+  }).catch(err => {
+    const errors = new Error(err)
+    errors.httpStatusCode = 500
+    return next(errors)
+  })
 };
 
 exports.postNewPassword = (req, res, next) => {
@@ -264,5 +276,9 @@ exports.postNewPassword = (req, res, next) => {
   .then(result => {
     res.redirect('/login');
   })
-  .catch(err => console.log(err))
+  .catch(err => {
+    const errors = new Error(err)
+    errors.httpStatusCode = 500
+    return next(errors)
+  })
 }
