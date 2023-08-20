@@ -19,13 +19,37 @@ app.set('views', 'views') // where to find
 app.set("view engine", "ejs");
 app.set("views", "views");
 
-// CSRF token
-const csrf = require('csurf')
-const csrfProtection = csrf()
+// Multer
+const multer = require("multer");
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images');
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().getTime() + '-' + file.originalname);
+  }
+});
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
 
+
+
+// CSRF token
+const csrf = require("csurf");
+const csrfProtection = csrf();
 
 // Connect-flash
-const flash = require('connect-flash')
+const flash = require("connect-flash");
 
 /* // Database SQL
 
@@ -46,17 +70,24 @@ const User = require("./models/user"); */
 // Mongoose connection
 const mongoose = require("mongoose");
 const User = require("./models/user");
-const MONGODB_URI = "mongodb+srv://vovankha2003:vovankha2003@cluster0.e5aa9am.mongodb.net/shop"
+const MONGODB_URI =
+  "mongodb+srv://vovankha2003:vovankha2003@cluster0.e5aa9am.mongodb.net/shop";
 
-// Session 
-const session = require('express-session');
-const MongoDBStore = require('connect-mongodb-session')(session);
+// Session
+const session = require("express-session");
+const MongoDBStore = require("connect-mongodb-session")(session);
 const store = new MongoDBStore({
   uri: MONGODB_URI,
-  collection: 'sessions',
-})
-app.use(session({secret: 'my secret', resave: false, saveUninitialized: false, store: store}));
-
+  collection: "sessions",
+});
+app.use(
+  session({
+    secret: "my secret",
+    resave: false,
+    saveUninitialized: false,
+    store: store,
+  })
+);
 
 app.use((req, res, next) => {
   /* // Sequelize
@@ -67,21 +98,21 @@ app.use((req, res, next) => {
     })
     .catch((err) => console.log(err))
    */
-  
+
   // MongoDB and mongoose
-  if (!req.session.user){
-    return next()
+  if (!req.session.user) {
+    return next();
   }
   User.findById(req.session.user._id)
     .then((user) => {
-      if (!user){
-        return next()
+      if (!user) {
+        return next();
       }
-      req.user = user
+      req.user = user;
       next();
     })
     .catch((err) => {
-      throw new Error(err)
+      throw new Error(err);
     });
 });
 
@@ -99,13 +130,15 @@ app.use(
   })
 );
 
+
 // public folder
 app.use(express.static(path.join(__dirname, "public")));
+app.use('/images',express.static(path.join(__dirname, "images")));
 
-app.use(csrfProtection)
+app.use(csrfProtection);
 
 app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn
+  res.locals.isAuthenticated = req.session.isLoggedIn;
   res.locals.csrfToken = req.csrfToken();
   next();
 });
@@ -121,21 +154,18 @@ app.use(shopRoutes);
 app.use(authRoutes);
 
 // Handling errors
-app.get('/500', errorController.get500)
+app.get("/500", errorController.get500);
 
 // Not found page
 app.use(errorController.get404);
 
-
 // Handling errors using next()
 app.use((error, req, res, next) => {
-  res.redirect('/500')
-})
+  res.redirect("/500");
+});
 
 mongoose
-  .connect(
-    MONGODB_URI
-  )
+  .connect(MONGODB_URI)
   .then((result) => {
     /*  User.findOne().then((user) => {
       if(!user){
@@ -149,7 +179,7 @@ mongoose
         user.save()
       }
     }) */
-    
+
     app.listen(4000);
   })
   .catch((err) => console.log(err));
