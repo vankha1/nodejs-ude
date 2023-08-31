@@ -290,8 +290,8 @@ exports.postEditProduct = (req, res, next) => {
   ); */
 };
 
-exports.postDeleteProduct = (req, res, next) => {
-  const prodId = req.body.productId;
+exports.deleteProduct = (req, res, next) => {
+  const prodId = req.params.productId;
   /* Sequelize
   Product.findByPk(prodId)
     .then((product) => {
@@ -311,12 +311,13 @@ exports.postDeleteProduct = (req, res, next) => {
     fileHelper.deleteFile(product.imageUrl)
     return Product.deleteOne({ _id: prodId, userId : req.user._id })
   })
-  .then((result) => {
-    res.redirect("/admin/products");
+  .then(() => {
+    res.status(200).json({ message : 'Success !!!' })
   })
   .catch((error) => {
-    const errors = new Error(error)
-    errors.httpStatusCode = 500
-    return next(errors)
+    // const errors = new Error(error)
+    // errors.httpStatusCode = 500
+    // return next(errors)
+    res.status(500).json({ message : 'Deleting product fail.' })
   });
 };

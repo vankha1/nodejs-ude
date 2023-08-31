@@ -1,14 +1,19 @@
 const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
+const stripe = require("stripe")('sk_test_51NlB5AGMiqvxA792EZ7nn3JvsKh8ykAYmJBIUdV1qgKw3UYbyrLdaVElDjbpiFAv3ogTjeoLyVa8z9Mk1kwHPAqs008hxT0oag');
 
 const Product = require("../models/product");
 const Order = require("../models/order");
+const product = require("../models/product");
 // const Cart = require("../models/cart");
 
 const ITEMS_PER_PAGE = 1;
 
 exports.getProducts = (req, res, next) => {
+  const page = +req.query.page || 1; // Must be query.page because we defined href='/?page='
+  let totalItems;
+
   Product.find()
     .countDocuments()
     .then((numProducts) => {
@@ -28,6 +33,7 @@ exports.getProducts = (req, res, next) => {
     })
     .catch((err) => {
       const errors = new Error(err);
+      // console.log(errors);
       errors.httpStatusCode = 500;
       return next(errors);
     });
@@ -435,11 +441,85 @@ exports.getOrders = (req, res, next) => {
 };
 
 exports.getCheckout = (req, res, next) => {
-  res.render("shop/checkout", {
-    path: "/checkout",
-    pageTitle: "Your Checkout",
-  });
+  let products;
+  let total = 0;
+  req.user
+    .populate("cart.items.productId")
+    .then((user) => {
+      // console.log(user);
+      products = user.cart.items;
+      total = 0;
+      products.forEach((product) =>{
+        total += product.quantity * product.productId.price;
+      })
+
+      return stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'payment',
+        line_items: products.map(p => {
+          return {
+            quantity: p.quantity,
+            price_data: {
+              currency: "usd",
+              unit_amount: p.productId.price * 100,
+              product_data: {
+                name: p.productId.title,
+                description: p.productId.description,
+              },
+            },
+          }
+        }),
+        customer_email: req.user.email,
+        success_url : req.protocol + '://' + req.get('host') + '/checkout/success', // http://localhost:4000
+        cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel' 
+      })
+    })
+    .then((session) => {
+      res.render("shop/checkout", {
+        path: "/checkout",
+        pageTitle: "Your checkout",
+        products: products,
+        totalSum : total,
+        sessionId : session.id
+      });
+    })
+    .catch((err) => {
+      const errors = new Error(err);
+      errors.httpStatusCode = 500;
+      return next(errors);
+    });
 };
+
+exports.getCheckoutSuccess = () => {
+  req.user
+    .populate("cart.items.productId")
+    .then((user) => {
+      // 'cause user items have product's id which doesn't exist in model Order, we need to map user.cart.items to get quantity and product.
+      const products = user.cart.items.map((item) => {
+        return { quantity: item.quantity, product: { ...item.productId._doc } };
+      });
+      // console.log(user.cart.items);
+      const order = new Order({
+        products: products,
+        user: {
+          email: req.user.email,
+          userId: req.user._id,
+        },
+      });
+      return order.save();
+    })
+    .then((result) => {
+      req.user.clearCart();
+    })
+    .then(() => {
+      res.redirect("/orders");
+    })
+    .catch((err) => {
+      const errors = new Error(err);
+      errors.httpStatusCode = 500;
+      return next(errors);
+    });
+}
 
 exports.getInvoice = (req, res, next) => {
   const orderId = req.params.orderId;
